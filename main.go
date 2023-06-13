@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 )
 
-const JOKE_URL = "https://api.chucknorris.io/jokes/random"
+var JOKE_URL = os.Getenv("JOKE_URL")
 
 type Joke struct {
 	Created_at string `json:"created_at"`
@@ -22,6 +23,7 @@ type Response struct {
 }
 
 func main() {
+	fmt.Printf("Joke Url : %s", JOKE_URL)
 	http.HandleFunc("/joke", jokeHandler)
 	port := ":8080"
 	fmt.Printf("Server listening on port %s\n", port)
