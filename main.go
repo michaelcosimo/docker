@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 var JOKE_URL = os.Getenv("JOKE_URL")
@@ -23,17 +25,18 @@ type Response struct {
 }
 
 func main() {
-	fmt.Printf("Joke Url : %s", JOKE_URL)
-	http.HandleFunc("/joke", jokeHandler)
+	fmt.Printf("Joke URL: %s\n", JOKE_URL)
+	router := gin.Default()
+	router.GET("/joke", jokeHandler)
 	port := ":8080"
 	fmt.Printf("Server listening on port %s\n", port)
-	http.ListenAndServe(port, nil)
+	router.Run(port)
 }
 
-func jokeHandler(w http.ResponseWriter, r *http.Request) {
+func jokeHandler(c *gin.Context) {
 	resp, err := http.Get(JOKE_URL)
 	if err != nil {
-		http.Error(w, "Failed to fetch joke", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch joke"})
 		return
 	}
 	defer resp.Body.Close()
@@ -42,7 +45,7 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(resp.Body).Decode(&jokeData)
 	if err != nil {
 		fmt.Printf("%v", err)
-		http.Error(w, "Failed to parse joke response", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse joke response"})
 		return
 	}
 
@@ -50,13 +53,5 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) {
 		Joke: jokeData.Value,
 	}
 
-	responseJSON, err := json.Marshal(res)
-	if err != nil {
-		fmt.Printf("%v", err)
-		http.Error(w, "Failed to encode joke response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(responseJSON)
+	c.JSON(http.StatusOK, res)
 }

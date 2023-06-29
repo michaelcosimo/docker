@@ -1,16 +1,10 @@
-version: '3'
+version: '3.0'
 services:
   joke-app:
     build:
       context: .
     ports:
       - 8080:8080
-    depends_on:
-      - mongodb
-
-  mongodb:
-    image: mongo
-    ports:
-      - 27017:27017
-    volumes:
-      - ./data:/data/db
+    environment:
+      - JOKE_URL=https://api.chucknorris.io/jokes/random
+    image: joke-app:2.0

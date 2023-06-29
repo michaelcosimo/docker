@@ -1,17 +1,21 @@
-# Use the official Go image as the base
-FROM golang:1.16
+# Use the official Golang image as the base image
+FROM golang:1.19-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the source code into the container
+# Copy go.mod and go.sum files to the container
+COPY go.mod go.sum ./
+
+# Download the Go dependencies
+RUN go mod download
+RUN go mod tidy
+
+# Copy the rest of the application source code to the container
 COPY . .
 
-# Download dependencies
-RUN go mod download
-
 # Build the Go application
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
-# Set the command to run the application
+# Set the command to run the executable when the container starts
 CMD ["./main"]
